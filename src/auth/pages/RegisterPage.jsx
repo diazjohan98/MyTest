@@ -67,14 +67,13 @@ export const RegisterPage = () => {
             <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
               {/* Campos de texto */}
               <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="text"
                 label="Full Name"
-                name="text"
-                autoComplete="text"
-                autoFocus
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                size="medium"
+                name="fullName"
+                required
               />
               <TextField
                 margin="normal"
