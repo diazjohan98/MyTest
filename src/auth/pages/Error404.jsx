@@ -4,11 +4,15 @@ import imgError404 from '../../assets/undraw_page_not_found_re_e9o6.svg'
 
 export const Error404 = () => {
     return (
-        <div style={{ textAlign: 'center', marginTop: '100px' }}>
-            <Box sx={{
-                width: '100px',
-            }}>
-                <img src={imgError404} alt="Ejemplo" />
+        <div style={{ textAlign: 'center', marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Box
+                sx={{
+                    width: '500px',
+                    height: '500px',
+                    margin: '0 auto', // Centra horizontalmente el contenedor de la imagen
+                }}
+            >
+                <img src={imgError404} alt="Ejemplo" style={{ width: '100%', height: '100%', }} />
             </Box>
             <Typography variant="body1">
                 Lo sentimos, la página que estás buscando no existe.
