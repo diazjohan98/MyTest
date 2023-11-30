@@ -64,7 +64,7 @@ export const RegisterPage = () => {
               Create your free account
             </Typography>
             {/* Formulario */}
-            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {/* Campos de texto */}
               <TextField
                 label="Full Name"
@@ -74,6 +74,9 @@ export const RegisterPage = () => {
                 size="medium"
                 name="fullName"
                 required
+                sx={{
+                  width: '250%'
+                }}
               />
               <TextField
                 margin="normal"
@@ -84,6 +87,9 @@ export const RegisterPage = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                sx={{
+                  width: '250%'
+                }}
               />
               <TextField
                 margin="normal"
@@ -94,21 +100,20 @@ export const RegisterPage = () => {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                sx={{
+                  width: '250%'
+                }}
               />
               {/* Botón de crear cuenta */}
               <Button
                 variant="contained"
                 sx={{
-                  ml: '190px',
                   mt: '20px',
                   mb: '20px',
                   backgroundColor: '#26A048',
                   color: '#000000',
                   textTransform: 'none',
                   fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: '#1F7F38',
-                  },
                   paddingX: '40px', // Agregar padding horizontal de 15px
                 }}
               >
@@ -118,7 +123,7 @@ export const RegisterPage = () => {
               <Grid container>
                 <Grid item>
                   {/* Texto y enlace para iniciar sesión */}
-                  <Typography variant="body2" sx={{ color: '#7C838A', textDecorationLine: 'none', ml: '330px' }}>
+                  <Typography variant="body2" sx={{ color: '#7C838A', textDecorationLine: 'none' }}>
                     {"Already have an account?"}
                     <RouterLink to='/auth/login' style={{ color: '#26A048', textDecoration: 'none' }}>
                       Log in
