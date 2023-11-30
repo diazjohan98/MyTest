@@ -62,7 +62,7 @@ export const LoginPage = () => {
               MyTest
             </Typography>
             {/* Formulario */}
-            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {/* Campos de texto */}
               <TextField
                 margin="normal"
@@ -73,6 +73,9 @@ export const LoginPage = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                sx={{
+                  width: '250%'
+                }}
               />
               <TextField
                 margin="normal"
@@ -83,31 +86,30 @@ export const LoginPage = () => {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                sx={{
+                  width: '250%'
+                }}
               />
               {/* Botón de iniciar sesión */}
               <Button
                 variant="contained"
                 sx={{
-                  ml: '190px',
                   mt: '20px',
                   mb: '20px',
                   backgroundColor: '#26A048',
                   color: '#000000',
                   textTransform: 'none',
                   fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: '#1F7F38',
-                  },
                   paddingX: '30px', // Agregar padding horizontal de 15px
                 }}
               >
                 Iniciar Sesión
               </Button>
               {/* Enlace para registrarse */}
-              <Grid container>
+              <Grid container justifyContent="flex-end">
                 <Grid item>
                   {/* Texto y enlace para registro */}
-                  <Typography variant="body2" sx={{ color: '#7C838A', textDecorationLine: 'none', ml: '330px' }}>
+                  <Typography variant="body2" sx={{ color: '#7C838A', textDecorationLine: 'none', marginLeft: 'auto' }}>
                     {"Don't have an account? "}
                     <RouterLink to='/auth/register' style={{ color: '#26A048', textDecoration: 'none' }}>
                       Sign Up
