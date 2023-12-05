@@ -2,6 +2,8 @@
 import ImgSignUp from '../../assets/undraw_programming_re_kg9v.svg';
 import { Link as RouterLink } from "react-router-dom";
 import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
+import { useState } from 'react';
+import axios from 'axios'
 
 // Extrae los componentes necesarios de Material-UI
 const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
@@ -11,15 +13,36 @@ const defaultTheme = createTheme();
 
 // Definición del componente de registro
 export const RegisterPage = () => {
-  // Función que maneja el envío del formulario
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
+
+   // Define estado para manejar los errores de la API
+   const [apiErrors, setApiErrors] = useState([]);
+
+   const handleSubmit = async (event) => {
+     event.preventDefault();
+     const formData = new FormData(event.currentTarget);
+ 
+     try {
+       // Realiza la solicitud POST a la API utilizando Axios
+       const response = await axios.post('https://proyecto-mytest.fly.dev/v1/user', {
+         nombre: formData.get('fullName'),
+         correo: formData.get('email'),
+         contrasenia: formData.get('password'),
+       });
+ 
+       // Verifica si la solicitud fue exitosa (código de estado 2xx)
+       if (response.status === 200) {
+         // El usuario se registró exitosamente
+         console.log('Usuario registrado exitosamente');
+         // Puedes redirigir al usuario a otra página o realizar alguna acción adicional aquí
+       } else {
+         // La solicitud falló, maneja los errores de la API
+         setApiErrors(response.data.errors || []);
+         console.error('Error al registrar usuario:', response.data.errors);
+       }
+     } catch (error) {
+       console.error('Error al conectarse con la API:', error);
+     }
+   };
 
   return (
     // Provee el tema por defecto a todos los componentes bajo este árbol.
@@ -106,6 +129,7 @@ export const RegisterPage = () => {
               />
               {/* Botón de crear cuenta */}
               <Button
+                type="submit" // Indica que este botón es de tipo submit
                 variant="contained"
                 sx={{
                   mt: '20px',
@@ -114,11 +138,21 @@ export const RegisterPage = () => {
                   color: '#000000',
                   textTransform: 'none',
                   fontWeight: 'bold',
-                  paddingX: '40px', // Agregar padding horizontal de 15px
+                  paddingX: '40px',
                 }}
               >
                 Create Account
               </Button>
+              {/* Mostrar errores de la API, si existen */}
+              {apiErrors.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="error">
+                    {apiErrors.map((error, index) => (
+                      <div key={index}>{error.msg}</div>
+                    ))}
+                  </Typography>
+                </Box>
+              )}
               {/* Enlace para iniciar sesión */}
               <Grid container>
                 <Grid item>
