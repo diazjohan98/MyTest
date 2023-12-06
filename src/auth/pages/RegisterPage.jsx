@@ -11,41 +11,46 @@ const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createThem
 // Crea el tema por defecto para el componente
 const defaultTheme = createTheme();
 
+
 // Definición del componente de registro
 export const RegisterPage = () => {
 
    // Define estado para manejar los errores de la API
-   const [apiErrors, setApiErrors] = useState("");
-   const [email, setEmail] = useState("");
-   const [password, setPassword] = useState("");
-   const [username, setNameUser] = useState("");
+   const [apiErrors, setApiErrors] = useState([]);
+   const [correo, setCorreo] = useState("");
+   const [contrasenia, setContrasenia] = useState("");
+   const [nombre, setNombre] = useState("");
 
    const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiErrors("");
+    setApiErrors([]);
 
-    if (email === "" || password === "" || username === "") {
-      setApiErrors("Todos los campos son obligatorios");
+    if (nombre === "" || correo === "" || contrasenia === "") {
+      setApiErrors(["Todos los campos son obligatorios"]);
       return;
     }
 
     try {
       const datosRegistro = {
-        email,
-        password,
-        username,
+        nombre: nombre,
+        correo: correo,
+        contrasenia: contrasenia,
       };
-      console.log(email,password,username);
+      console.log(nombre,correo,contrasenia);
       const response = await axios.post(
-        "http://proyecto-mytest.fly.dev/v1/user",
-        datosRegistro
+        "https://proyecto-mytest.fly.dev/v1/user",
+        datosRegistro, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
     console.log(response.data);
 
-      setEmail("");
-      setPassword("");
-      setNameUser("");
+      setNombre("");
+      setCorreo("");
+      setContrasenia("");
     } catch (error) {
       console.error(error);
     }
@@ -103,8 +108,8 @@ export const RegisterPage = () => {
                 size="medium"
                 name="fullName"
                 required
-                value={username}
-                onChange={(e) => setNameUser(e.target.value)}
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
                 sx={{
                   width: '250%'
                 }}
@@ -118,8 +123,8 @@ export const RegisterPage = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
                 sx={{
                   width: '250%'
                 }}
@@ -136,8 +141,8 @@ export const RegisterPage = () => {
                 sx={{
                   width: '250%'
                 }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={contrasenia}
+                onChange={(e) => setContrasenia(e.target.value)}
               />
               {/* Botón de crear cuenta */}
               <Button
