@@ -175,6 +175,7 @@ export const LoginPage = () => {
                 </Box>
               </Modal> */}
               {/* Enlace para registrarse */}
+              {apiErrors && <p className="errorRegister">{apiErrors}</p>}
               <Grid container justifyContent="flex-end">
                 <Grid item>
                   {/* Texto y enlace para registro */}
