@@ -58,7 +58,7 @@ export const LoginPage = () => {
       // handleModalOpen(true)
     }
 
-    navigate('/')
+    navigate('/');
 
   };
 
