@@ -1,26 +1,65 @@
 import ImgSignUp from '../../assets/undraw_mobile_development_re_wwsn.svg';
-import { Link as RouterLink } from "react-router-dom"
+import { Link as RouterLink, useNavigate } from "react-router-dom"
 import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
+import { useState } from 'react';
+import axios from 'axios'
+
 
 const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
 
 const defaultTheme = createTheme();
 
 export const LoginPage = () => {
-  // Esta función maneja el evento de envío del formulario.
-  // Evita la acción por defecto del formulario y recoge los datos del formulario.
-  const handleSubmit = (event) => {
-    // Previene el comportamiento predeterminado del formulario (evita la recarga de la página).
-    event.preventDefault();
+  const navigate = useNavigate()
 
-    // Crea un objeto FormData a partir de los elementos del formulario actual.
-    const formData = new FormData(event.currentTarget);
+  // const [modalOpen, setModalOpen] = useState(false);
+  // const handleModalOpen = () => {
+  //   setModalOpen(true);
+  // };
+  // const handleModalClose = () => {
+  //   setModalOpen(false);
+  // };
 
-    // Muestra en la consola un objeto con el correo electrónico y la contraseña obtenidos del formulario.
-    console.log({
-      email: formData.get('email'), // Obtiene el valor del campo 'email' del formulario
-      password: formData.get('password'), // Obtiene el valor del campo 'password' del formulario
-    });
+  const [apiErrors, setApiErrors] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [contrasenia, setContrasenia] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiErrors("");
+
+    if ( correo === "" || contrasenia === "") {
+      setApiErrors(["Todos los campos son obligatorios"]);
+      // setModalOpen(true)
+      return;
+    }
+
+    try {
+      const datosRegistro = {
+        correo: correo,
+        contrasenia: contrasenia,
+      };
+      console.log (correo, contrasenia);
+      const response = await axios.post(
+        "https://proyecto-mytest.fly.dev/v1/login",
+        datosRegistro, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+      );
+
+      console.log(response.data);
+
+      setCorreo("");
+      setContrasenia("");
+    } catch (error) {
+      console.error(error);
+      // handleModalOpen(true)
+    }
+
+    navigate('/');
+
   };
 
   return (
@@ -71,6 +110,8 @@ export const LoginPage = () => {
                 id="email"
                 label="Email Address"
                 name="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
                 autoComplete="email"
                 autoFocus
                 sx={{
@@ -85,6 +126,8 @@ export const LoginPage = () => {
                 label="Password"
                 type="password"
                 id="password"
+                value={contrasenia}
+                onChange={(e) => setContrasenia(e.target.value)}
                 autoComplete="current-password"
                 sx={{
                   width: '250%'
@@ -92,6 +135,7 @@ export const LoginPage = () => {
               />
               {/* Botón de iniciar sesión */}
               <Button
+                type='submit'
                 variant="contained"
                 sx={{
                   mt: '20px',
@@ -105,7 +149,33 @@ export const LoginPage = () => {
               >
                 Iniciar Sesión
               </Button>
+              {/* <Modal
+                open={modalOpen}
+                onClose={handleModalClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+              >
+                <Box sx={{
+                  //  position: 'absolute' as 'absolute',
+                   top: '50%',
+                   left: '50%',
+                   transform: 'translate(-50%, -50%)',
+                   width: 400,
+                   bgcolor: 'background.paper',
+                   border: '2px solid #000',
+                   boxShadow: 24,
+                   p: 4,
+                }}>
+                  <Typography id="modal-modal-title" variant="h6" component="h2">
+                    Text in a modal
+                  </Typography>
+                  <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+                  </Typography>
+                </Box>
+              </Modal> */}
               {/* Enlace para registrarse */}
+              {apiErrors && <p className="errorRegister">{apiErrors}</p>}
               <Grid container justifyContent="flex-end">
                 <Grid item>
                   {/* Texto y enlace para registro */}
