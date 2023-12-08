@@ -182,7 +182,7 @@ export const LoginPage = () => {
                         sx={{ mt: '20px' }}
                           variant="outlined"
                           size="small" // Tamaño pequeño
-                          onClick={handleCloseDialog}
+                          onClick={handleCloseDialog} 
                         >
                           Cerrar
                         </Button>

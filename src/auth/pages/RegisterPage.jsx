@@ -166,7 +166,7 @@ export const RegisterPage = () => {
                   fontWeight: 'bold',
                   paddingX: '40px',
                 }}
-              >
+              > 
                 Create Account
               </Button>
 
