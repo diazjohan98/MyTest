@@ -1,36 +1,43 @@
+import { useContext, useState } from 'react';
+import axios from 'axios';
+import { Dialog, DialogContent } from '@mui/material';
 import ImgSignUp from '../../assets/undraw_mobile_development_re_wwsn.svg';
-import { Link as RouterLink, useNavigate } from "react-router-dom"
-import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
-import { useState } from 'react';
-import axios from 'axios'
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import * as MUI from './MaterialUIComponents';
+import { AuthContext } from "../pages/context/AuthContext";
 
 
-const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
+const {
+  Button,
+  CssBaseline,
+  TextField,
+  Paper,
+  Box,
+  Grid,
+  Typography,
+  createTheme,
+  ThemeProvider,
+} = MUI;
 
 const defaultTheme = createTheme();
 
 export const LoginPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { saveTokenToLocalStorage } = useContext(AuthContext);
+  
 
-  // const [modalOpen, setModalOpen] = useState(false);
-  // const handleModalOpen = () => {
-  //   setModalOpen(true);
-  // };
-  // const handleModalClose = () => {
-  //   setModalOpen(false);
-  // };
-
-  const [apiErrors, setApiErrors] = useState("");
-  const [correo, setCorreo] = useState("");
-  const [contrasenia, setContrasenia] = useState("");
+  const [apiErrors, setApiErrors] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasenia, setContrasenia] = useState('');
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar la apertura/cierre del modal
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiErrors("");
+    setApiErrors('');
 
-    if ( correo === "" || contrasenia === "") {
-      setApiErrors(["Todos los campos son obligatorios"]);
-      // setModalOpen(true)
+    if (correo === '' || contrasenia === '') {
+      setApiErrors('Todos los campos son obligatorios');
+      setOpenDialog(true); // Abrir modal en caso de campos incompletos
       return;
     }
 
@@ -39,28 +46,42 @@ export const LoginPage = () => {
         correo: correo,
         contrasenia: contrasenia,
       };
-      console.log (correo, contrasenia);
+
       const response = await axios.post(
-        "https://proyecto-mytest.fly.dev/v1/login",
-        datosRegistro, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+        'https://proyecto-mytest.fly.dev/v1/login',
+        datosRegistro,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
+
+      
 
       console.log(response.data);
 
-      setCorreo("");
-      setContrasenia("");
+      const token = await response.data?.token;
+    saveTokenToLocalStorage(token);
+      navigate("/");
+
+      setCorreo('');
+      setContrasenia('');
+
     } catch (error) {
       console.error(error);
-      // handleModalOpen(true)
+      if (error.response && error.response.status === 404) {
+        setOpenDialog(true); // Mostrar el modal si hay un error 404
+        setApiErrors('Usuario no registrado. Por favor, regístrate.');
+      }
     }
-
-    navigate('/');
-
   };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Cerrar el modal
+    setApiErrors('');
+  };
+
 
   return (
     // Provee el tema por defecto a todos los componentes bajo este árbol.
@@ -149,33 +170,25 @@ export const LoginPage = () => {
               >
                 Iniciar Sesión
               </Button>
-              {/* <Modal
-                open={modalOpen}
-                onClose={handleModalClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-              >
-                <Box sx={{
-                  //  position: 'absolute' as 'absolute',
-                   top: '50%',
-                   left: '50%',
-                   transform: 'translate(-50%, -50%)',
-                   width: 400,
-                   bgcolor: 'background.paper',
-                   border: '2px solid #000',
-                   boxShadow: 24,
-                   p: 4,
-                }}>
-                  <Typography id="modal-modal-title" variant="h6" component="h2">
-                    Text in a modal
-                  </Typography>
-                  <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                  </Typography>
-                </Box>
-              </Modal> */}
-              {/* Enlace para registrarse */}
-              {apiErrors && <p className="errorRegister">{apiErrors}</p>}
+              {apiErrors && (
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent>
+                    <Typography>{apiErrors}</Typography>
+                    <Grid container justifyContent="flex-end" spacing={2}>
+                      <Grid item>
+                        <Button
+                        sx={{ mt: '20px' }}
+                          variant="outlined"
+                          size="small" // Tamaño pequeño
+                          onClick={handleCloseDialog} 
+                        >
+                          Cerrar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                </Dialog>
+              )}
               <Grid container justifyContent="flex-end">
                 <Grid item>
                   {/* Texto y enlace para registro */}

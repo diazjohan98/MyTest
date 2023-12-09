@@ -4,6 +4,7 @@ import { Link as RouterLink } from "react-router-dom";
 import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
 import { useState } from 'react';
 import axios from 'axios'
+import { Dialog, DialogContent } from '@mui/material';
 
 // Extrae los componentes necesarios de Material-UI
 const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
@@ -20,6 +21,7 @@ export const RegisterPage = () => {
    const [correo, setCorreo] = useState("");
    const [contrasenia, setContrasenia] = useState("");
    const [nombre, setNombre] = useState("");
+   const [openDialog, setOpenDialog] = useState(false);
 
    const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ export const RegisterPage = () => {
 
     if (nombre === "" || correo === "" || contrasenia === "") {
       setApiErrors(["Todos los campos son obligatorios"]);
+      setOpenDialog(true); // Abr
       return;
     }
 
@@ -54,6 +57,12 @@ export const RegisterPage = () => {
     } catch (error) {
       console.error(error);
     }
+
+
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Cerrar el modal
+    setApiErrors('');
   };
   return (
     // Provee el tema por defecto a todos los componentes bajo este árbol.
@@ -157,19 +166,29 @@ export const RegisterPage = () => {
                   fontWeight: 'bold',
                   paddingX: '40px',
                 }}
-              >
+              > 
                 Create Account
               </Button>
 
               {/* Mostrar errores de la API, si existen */}
-              {apiErrors.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="error">
-                    {/*{apiErrors.map((error, index) => (
-                      <div key={index}>{error.msg}</div>
-                    ))}*/}
-                  </Typography>
-                </Box>
+              {apiErrors && (
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent>
+                    <Typography>{apiErrors}</Typography>
+                    <Grid container justifyContent="flex-end" spacing={2}>
+                      <Grid item>
+                        <Button
+                        sx={{ mt: '20px' }}
+                          variant="outlined"
+                          size="small" // Tamaño pequeño
+                          onClick={handleCloseDialog}
+                        >
+                          Cerrar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                </Dialog>
               )}
               {/* Enlace para iniciar sesión */}
               <Grid container>
