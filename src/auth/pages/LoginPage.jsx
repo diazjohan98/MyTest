@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import axios from 'axios';
 import { Dialog, DialogContent } from '@mui/material';
 import ImgSignUp from '../../assets/undraw_mobile_development_re_wwsn.svg';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import * as MUI from './MaterialUIComponents';
-import { useAuth } from './context/AuthContext';
-import { jwtDecode } from "jwt-decode";
+import { AuthContext } from "../pages/context/AuthContext";
+
 
 const {
   Button,
@@ -23,7 +23,8 @@ const defaultTheme = createTheme();
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, toggleAuth } = useAuth();
+  const { saveTokenToLocalStorage } = useContext(AuthContext);
+  
 
   const [apiErrors, setApiErrors] = useState('');
   const [correo, setCorreo] = useState('');
@@ -56,20 +57,17 @@ export const LoginPage = () => {
         }
       );
 
+      
+
       console.log(response.data);
+
+      const token = await response.data?.token;
+    saveTokenToLocalStorage(token);
+      navigate("/");
 
       setCorreo('');
       setContrasenia('');
 
-      // Validar el token
-      if (response.data.token) {
-        const token = response.data.token;
-        const decodedToken = jwtDecode(token); // Usa la función jwt_decode
-        console.log(decodedToken);
-
-        toggleAuth();
-        navigate('/');
-      }
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 404) {

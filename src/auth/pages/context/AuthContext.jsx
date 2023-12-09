@@ -1,24 +1,30 @@
-import { useState, createContext, useContext } from 'react';
+import { createContext, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
-// Creamos el contexto de autenticación
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
-// Proveedor del contexto
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [decodedToken, setDecodedToken] = useState(null);
 
-  const toggleAuth = () => {
-    setIsAuthenticated(prevAuth => !prevAuth);
+  const saveTokenToLocalStorage = (token) => {
+    // Guardar el token en el almacenamiento local
+    localStorage.setItem("token", token);
+
+    // Decodificar el token
+    const decoded = jwtDecode(token);
+
+    // Guardar el token decodificado en el estado del contexto
+    setDecodedToken(decoded);
+
+    localStorage.setItem("decodedToken", JSON.stringify(decoded));
+
+    console.log(decoded)
+
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, toggleAuth }}>
+    <AuthContext.Provider value={{ decodedToken, saveTokenToLocalStorage }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Función personalizada para usar el contexto
-export const useAuth = () => {
-  return useContext(AuthContext);
 };
