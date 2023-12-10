@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
@@ -19,6 +19,8 @@ function Home({ selectedProject }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCaso, setSelectedCaso] = useState(null);
 
+  
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
@@ -27,32 +29,17 @@ function Home({ selectedProject }) {
     setSelectedCaso(caso);
     setOpenDialog(true);
   };
-  const handleDelete = async (caso) => {
-    try {
-      const response = await axios.delete(
-        `https://proyecto-mytest.fly.dev/v1/caso/${caso.id}`, // Asegúrate de usar el ID correcto
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log('Delete response:', response.data);
-      // Realiza acciones adicionales luego de la eliminación (si es necesario)
-    } catch (error) {
-      console.error('Error deleting caso:', error);
-      // Manejo de errores
-    }
-  };
-
+  
   useEffect(() => {
     if (selectedProject) {
       setProject(selectedProject.proyecto_id);
     }
   }, [selectedProject]);
 
+  const getProject = useRef();
+
   useEffect(() => {
-    const getProject = async () => {
+    getProject.current = async () => {
       try {
         if (project) {
           const response = await axios.get(
@@ -64,10 +51,14 @@ function Home({ selectedProject }) {
             }
           );
           const dataCaso = response.data;
-
+  
           if (Array.isArray(dataCaso)) {
             setCaso(dataCaso);
             setErrorFetchingCasos(false);
+          } else if (dataCaso.error === "No hay casos de prueba para este proyecto") {
+            // Manejar el caso específico cuando no hay casos
+            setCaso([]); // Puedes establecer un array vacío o proporcionar casos predeterminados
+            setErrorFetchingCasos(true);
           } else {
             console.error("La respuesta de la API no es un array:", dataCaso);
             setErrorFetchingCasos(true);
@@ -78,11 +69,32 @@ function Home({ selectedProject }) {
         setErrorFetchingCasos(true);
       }
     };
-
-
-
-    getProject();
+  
+    getProject.current();
   }, [project, token]);
+
+  const handleDelete = async (caso) => {
+    try {
+      const response = await axios.delete(
+        `https://proyecto-mytest.fly.dev/v1/caso/${caso.id}`, // Asegúrate de usar el ID correcto
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('Delete response:', response.data);
+  
+      // Llamamos a getProject para actualizar la lista de casos después de la eliminación
+      getProject.current();
+  
+      // Realiza acciones adicionales luego de la eliminación (si es necesario)
+    } catch (error) {
+      console.error('Error deleting caso:', error);
+      // Manejo de errores
+    }
+  };
+
 
   return (
     <div>
@@ -96,7 +108,6 @@ function Home({ selectedProject }) {
         <Typography marginTop={2} variant="h5">
           Casos
         </Typography>
-        (
         <Box marginTop={2}>
           {!caso.length ? (
             <Typography variant="body1" marginTop={2}>
