@@ -63,7 +63,7 @@ export const LoginPage = () => {
 
       const token = await response.data?.token;
     saveTokenToLocalStorage(token);
-      navigate("/");
+      navigate("/home");
 
       setCorreo('');
       setContrasenia('');

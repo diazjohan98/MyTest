@@ -1,6 +1,6 @@
 // Importa la imagen de ilustración y otros elementos necesarios
 import ImgSignUp from '../../assets/undraw_programming_re_kg9v.svg';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
 import { useState } from 'react';
 import axios from 'axios'
@@ -22,6 +22,8 @@ export const RegisterPage = () => {
    const [contrasenia, setContrasenia] = useState("");
    const [nombre, setNombre] = useState("");
    const [openDialog, setOpenDialog] = useState(false);
+
+   const navigate = useNavigate();
 
    const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,6 +56,8 @@ export const RegisterPage = () => {
       setNombre("");
       setCorreo("");
       setContrasenia("");
+
+      navigate("/auth/login");
     } catch (error) {
       console.error(error);
     }

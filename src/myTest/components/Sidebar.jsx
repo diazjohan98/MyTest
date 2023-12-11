@@ -151,6 +151,9 @@ export default function MiniDrawer({ MainComponent }) {
     setSelectedProject(project); // Ajusta aquí según la estructura de tu objeto project
   };
 
+  const handleHomeSelect = () => {
+    window.location.reload();
+  };
   return (
     <Box sx={{ display: "flex" }}>
       {/* Barra de aplicación */}
@@ -204,6 +207,7 @@ export default function MiniDrawer({ MainComponent }) {
                 justifyContent: open ? "initial" : "center",
                 px: 2.5,
               }}
+              onClick={handleHomeSelect}
             >
               <ListItemIcon
                 sx={{
