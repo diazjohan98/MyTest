@@ -1,27 +1,87 @@
+import { useContext, useState } from 'react';
+import axios from 'axios';
+import { Dialog, DialogContent } from '@mui/material';
 import ImgSignUp from '../../assets/undraw_mobile_development_re_wwsn.svg';
-import { Link as RouterLink } from "react-router-dom"
-import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import * as MUI from './MaterialUIComponents';
+import { AuthContext } from "../pages/context/AuthContext";
 
-const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
+
+const {
+  Button,
+  CssBaseline,
+  TextField,
+  Paper,
+  Box,
+  Grid,
+  Typography,
+  createTheme,
+  ThemeProvider,
+} = MUI;
 
 const defaultTheme = createTheme();
 
 export const LoginPage = () => {
-  // Esta función maneja el evento de envío del formulario.
-  // Evita la acción por defecto del formulario y recoge los datos del formulario.
-  const handleSubmit = (event) => {
-    // Previene el comportamiento predeterminado del formulario (evita la recarga de la página).
-    event.preventDefault();
+  const navigate = useNavigate();
+  const { saveTokenToLocalStorage } = useContext(AuthContext);
+  
 
-    // Crea un objeto FormData a partir de los elementos del formulario actual.
-    const formData = new FormData(event.currentTarget);
+  const [apiErrors, setApiErrors] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasenia, setContrasenia] = useState('');
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar la apertura/cierre del modal
 
-    // Muestra en la consola un objeto con el correo electrónico y la contraseña obtenidos del formulario.
-    console.log({
-      email: formData.get('email'), // Obtiene el valor del campo 'email' del formulario
-      password: formData.get('password'), // Obtiene el valor del campo 'password' del formulario
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiErrors('');
+
+    if (correo === '' || contrasenia === '') {
+      setApiErrors('Todos los campos son obligatorios');
+      setOpenDialog(true); // Abrir modal en caso de campos incompletos
+      return;
+    }
+
+    try {
+      const datosRegistro = {
+        correo: correo,
+        contrasenia: contrasenia,
+      };
+
+      const response = await axios.post(
+        'https://proyecto-mytest.fly.dev/v1/login',
+        datosRegistro,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      
+
+      console.log(response.data);
+
+      const token = await response.data?.token;
+    saveTokenToLocalStorage(token);
+      navigate("/home");
+
+      setCorreo('');
+      setContrasenia('');
+
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.status === 404) {
+        setOpenDialog(true); // Mostrar el modal si hay un error 404
+        setApiErrors('Usuario no registrado. Por favor, regístrate.');
+      }
+    }
   };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Cerrar el modal
+    setApiErrors('');
+  };
+
 
   return (
     // Provee el tema por defecto a todos los componentes bajo este árbol.
@@ -71,6 +131,8 @@ export const LoginPage = () => {
                 id="email"
                 label="Email Address"
                 name="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
                 autoComplete="email"
                 autoFocus
                 sx={{
@@ -85,6 +147,8 @@ export const LoginPage = () => {
                 label="Password"
                 type="password"
                 id="password"
+                value={contrasenia}
+                onChange={(e) => setContrasenia(e.target.value)}
                 autoComplete="current-password"
                 sx={{
                   width: '250%'
@@ -92,6 +156,7 @@ export const LoginPage = () => {
               />
               {/* Botón de iniciar sesión */}
               <Button
+                type='submit'
                 variant="contained"
                 sx={{
                   mt: '20px',
@@ -105,7 +170,25 @@ export const LoginPage = () => {
               >
                 Iniciar Sesión
               </Button>
-              {/* Enlace para registrarse */}
+              {apiErrors && (
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent>
+                    <Typography>{apiErrors}</Typography>
+                    <Grid container justifyContent="flex-end" spacing={2}>
+                      <Grid item>
+                        <Button
+                        sx={{ mt: '20px' }}
+                          variant="outlined"
+                          size="small" // Tamaño pequeño
+                          onClick={handleCloseDialog} 
+                        >
+                          Cerrar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                </Dialog>
+              )}
               <Grid container justifyContent="flex-end">
                 <Grid item>
                   {/* Texto y enlace para registro */}

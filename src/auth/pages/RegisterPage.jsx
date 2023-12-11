@@ -1,7 +1,10 @@
 // Importa la imagen de ilustración y otros elementos necesarios
 import ImgSignUp from '../../assets/undraw_programming_re_kg9v.svg';
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import * as MUI from './MaterialUIComponents'; // Importa todos los componentes de Material-UI
+import { useState } from 'react';
+import axios from 'axios'
+import { Dialog, DialogContent } from '@mui/material';
 
 // Extrae los componentes necesarios de Material-UI
 const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createTheme, ThemeProvider } = MUI;
@@ -9,18 +12,62 @@ const { Button, CssBaseline, TextField, Paper, Box, Grid, Typography, createThem
 // Crea el tema por defecto para el componente
 const defaultTheme = createTheme();
 
+
 // Definición del componente de registro
 export const RegisterPage = () => {
-  // Función que maneja el envío del formulario
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
 
+   // Define estado para manejar los errores de la API
+   const [apiErrors, setApiErrors] = useState([]);
+   const [correo, setCorreo] = useState("");
+   const [contrasenia, setContrasenia] = useState("");
+   const [nombre, setNombre] = useState("");
+   const [openDialog, setOpenDialog] = useState(false);
+
+   const navigate = useNavigate();
+
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiErrors([]);
+
+    if (nombre === "" || correo === "" || contrasenia === "") {
+      setApiErrors(["Todos los campos son obligatorios"]);
+      setOpenDialog(true); // Abr
+      return;
+    }
+
+    try {
+      const datosRegistro = {
+        nombre: nombre,
+        correo: correo,
+        contrasenia: contrasenia,
+      };
+      console.log(nombre,correo,contrasenia);
+      const response = await axios.post(
+        "https://proyecto-mytest.fly.dev/v1/user",
+        datosRegistro, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+    console.log(response.data);
+
+      setNombre("");
+      setCorreo("");
+      setContrasenia("");
+
+      navigate("/auth/login");
+    } catch (error) {
+      console.error(error);
+    }
+
+
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false); // Cerrar el modal
+    setApiErrors('');
+  };
   return (
     // Provee el tema por defecto a todos los componentes bajo este árbol.
     <ThemeProvider theme={defaultTheme}>
@@ -74,6 +121,8 @@ export const RegisterPage = () => {
                 size="medium"
                 name="fullName"
                 required
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
                 sx={{
                   width: '250%'
                 }}
@@ -87,6 +136,8 @@ export const RegisterPage = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
                 sx={{
                   width: '250%'
                 }}
@@ -103,9 +154,12 @@ export const RegisterPage = () => {
                 sx={{
                   width: '250%'
                 }}
+                value={contrasenia}
+                onChange={(e) => setContrasenia(e.target.value)}
               />
               {/* Botón de crear cuenta */}
               <Button
+                type="submit" // Indica que este botón es de tipo submit
                 variant="contained"
                 sx={{
                   mt: '20px',
@@ -114,11 +168,32 @@ export const RegisterPage = () => {
                   color: '#000000',
                   textTransform: 'none',
                   fontWeight: 'bold',
-                  paddingX: '40px', // Agregar padding horizontal de 15px
+                  paddingX: '40px',
                 }}
-              >
+              > 
                 Create Account
               </Button>
+
+              {/* Mostrar errores de la API, si existen */}
+              {apiErrors && (
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent>
+                    <Typography>{apiErrors}</Typography>
+                    <Grid container justifyContent="flex-end" spacing={2}>
+                      <Grid item>
+                        <Button
+                        sx={{ mt: '20px' }}
+                          variant="outlined"
+                          size="small" // Tamaño pequeño
+                          onClick={handleCloseDialog}
+                        >
+                          Cerrar
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                </Dialog>
+              )}
               {/* Enlace para iniciar sesión */}
               <Grid container>
                 <Grid item>
@@ -133,6 +208,7 @@ export const RegisterPage = () => {
               </Grid>
             </Box>
           </Box>
+          
         </Grid>
       </Grid>
     </ThemeProvider>
