@@ -1,36 +1,54 @@
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import { Button, Dialog, DialogContent, IconButton, List, ListItem, ListItemText, TextField } from '@mui/material';
 import { Delete, Edit, Visibility } from "@mui/icons-material";
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
 
 function Home({ selectedProject }) {
+  // Log de información sobre el proyecto seleccionado
   console.log("Selected Project in Home:", selectedProject);
 
+  // Obtener el token de localStorage
   const token = localStorage.getItem("token");
 
+  // Estado para almacenar el proyecto actual y los casos
   const [project, setProject] = useState(null);
   const [caso, setCaso] = useState([]);
   const [errorFetchingCasos, setErrorFetchingCasos] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCaso, setSelectedCaso] = useState(null);
 
+  // Función para cerrar el diálogo
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
+  // Función para abrir el diálogo con el caso seleccionado
   const handleOpenDialog = (caso) => {
     setSelectedCaso(caso);
     setOpenDialog(true);
   };
+
+  // Actualizar el estado del proyecto cuando se selecciona un nuevo proyecto
+  useEffect(() => {
+    if (selectedProject) {
+      setProject(selectedProject.proyecto_id);
+    }
+  }, [selectedProject]);
+
+  // Referencia mutable para la función de obtener proyecto
+  const getProject = useRef();
+
+  // Función para eliminar un caso
   const handleDelete = async (caso) => {
     try {
       const response = await axios.delete(
-        `https://proyecto-mytest.fly.dev/v1/caso/${caso.id}`, // Asegúrate de usar el ID correcto
+        `https://proyecto-mytest.fly.dev/v1/caso/${caso.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -38,23 +56,28 @@ function Home({ selectedProject }) {
         }
       );
       console.log('Delete response:', response.data);
-      // Realiza acciones adicionales luego de la eliminación (si es necesario)
+
+      // Llamamos a getProject para actualizar la lista de casos después de la eliminación
+      getProject.current();
+
+      // Realizar acciones adicionales después de la eliminación (si es necesario)
     } catch (error) {
       console.error('Error deleting caso:', error);
       // Manejo de errores
     }
   };
 
+  // Estado para la edición de un caso y control de apertura del modal de edición
   const [editingCaso, setEditingCaso] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
 
-  // Función para manejar la apertura del modal de edición
+  // Función para abrir el modal de edición con el caso seleccionado
   const handleOpenEditModal = (caso) => {
     setEditingCaso(caso);
     setOpenEditModal(true);
   };
 
-  // Función para manejar la actualización del caso
+  // Función para actualizar un caso
   const handleUpdateCaso = async (updatedData) => {
     try {
       const response = await axios.put(
@@ -68,25 +91,75 @@ function Home({ selectedProject }) {
         }
       );
       console.log('Update response:', response.data);
-      // Realiza acciones adicionales después de la actualización (si es necesario)
-      // Cierra el modal de edición
+      // Realizar acciones adicionales después de la actualización (si es necesario)
+      // Cerrar el modal de edición
       setOpenEditModal(false);
-      // Actualiza los casos para reflejar los cambios
-      // ... (agrega la lógica para actualizar casos si es necesario)
+      getProject.current(); // Actualizar la lista de casos
+      // Actualizar casos para reflejar los cambios (agregar lógica si es necesario)
     } catch (error) {
       console.error('Error updating caso:', error);
       // Manejo de errores
     }
   };
 
-  useEffect(() => {
-    if (selectedProject) {
-      setProject(selectedProject.proyecto_id);
-    }
-  }, [selectedProject]);
+  const [newCasoData, setNewCasoData] = useState({
+    nombre: '',
+    descripcion: '',
+    pasos_a_seguir: '',
+    prioridades: '',
+    fecha_inicio: '',
+    fecha_limite: '',
+    datos_de_prueba: '',
+    proyecto_id: Math.floor(Math.random() * 1000) + 1,
+  });
 
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [createCasoData, setCreateCasoData] = useState('')
+
+  const handleCreate = async () => {
+    try {
+      const response = await axios.post(
+        `https://proyecto-mytest.fly.dev/v1/${createCasoData}/`,
+        newCasoData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Create response:', response.data);
+
+      // Realizar acciones adicionales después de la creación (si es necesario)
+      // Por ejemplo, actualizar la lista de casos
+      // getProject.current();
+
+      // Cerrar el modal después de la creación exitosa
+      setOpenCreateModal(false);
+      setCreateCasoData()
+
+      // Restablecer los datos del nuevo caso a valores iniciales
+      setNewCasoData({
+        nombre: '',
+        descripcion: '',
+        pasos_a_seguir: '',
+        prioridades: '',
+        fecha_inicio: '',
+        fecha_limite: '',
+        datos_de_prueba: '',
+        proyecto_id: Math.floor(Math.random() * 1000) + 1,
+        // Restablecer otros campos si es necesario
+      });
+    } catch (error) {
+      console.error('Error creating caso:', error);
+      // Manejo de errores
+    }
+  };
+
+  // Obtener el proyecto y sus casos al cargar o cambiar el proyecto seleccionado
   useEffect(() => {
-    const getProject = async () => {
+    getProject.current = async () => {
       try {
         if (project) {
           const response = await axios.get(
@@ -100,8 +173,13 @@ function Home({ selectedProject }) {
           const dataCaso = response.data;
 
           if (Array.isArray(dataCaso)) {
+            // Establecer los casos obtenidos en el estado
             setCaso(dataCaso);
             setErrorFetchingCasos(false);
+          } else if (dataCaso.error === "No hay casos de prueba para este proyecto") {
+            // Manejar el caso específico cuando no hay casos
+            setCaso([]); // Puedes establecer un array vacío o proporcionar casos predeterminados
+            setErrorFetchingCasos(true);
           } else {
             console.error("La respuesta de la API no es un array:", dataCaso);
             setErrorFetchingCasos(true);
@@ -113,10 +191,9 @@ function Home({ selectedProject }) {
       }
     };
 
-
-
-    getProject();
+    getProject.current(); // Obtener los casos al cargar la página o cambiar de proyecto
   }, [project, token]);
+
 
   return (
     <div>
@@ -127,10 +204,16 @@ function Home({ selectedProject }) {
       </Typography>
       <Divider></Divider>
       <Box>
-        <Typography marginTop={2} variant="h5">
-          Casos
-        </Typography>
-        (
+        <Grid sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography marginTop={2} variant="h5">
+            Casos
+          </Typography>
+
+          <Grid>
+            <Button variant="contained" sx={{ mt: '20px' }} onClick={() => setOpenCreateModal(true)}>Agregar <ControlPointIcon sx={{ ml: '5px' }} /></Button>
+          </Grid>
+        </Grid>
+
         <Box marginTop={2}>
           {!caso.length ? (
             <Typography variant="body1" marginTop={2}>
@@ -156,6 +239,8 @@ function Home({ selectedProject }) {
                       borderRadius: '16px',
                       boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
                       cursor: 'pointer',
+                      justifyContent: 'center'
+
                     }}
 
                   >
@@ -232,7 +317,7 @@ function Home({ selectedProject }) {
               {editingCaso && (
                 <form>
                   <TextField
-                    sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Nombre"
                     value={editingCaso.nombre}
                     onChange={(e) => {
@@ -241,7 +326,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                    sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Descripción"
                     value={editingCaso.descripcion}
                     onChange={(e) => {
@@ -250,7 +335,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                   sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Pasos a seguir"
                     value={editingCaso.pasos_a_seguir}
                     onChange={(e) => {
@@ -259,7 +344,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                   sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Prioridades"
                     value={editingCaso.prioridades}
                     onChange={(e) => {
@@ -268,7 +353,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                   sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Fecha Inicio"
                     value={editingCaso.fecha_inicio}
                     onChange={(e) => {
@@ -277,7 +362,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                   sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Fecha Límite"
                     value={editingCaso.fecha_limite}
                     onChange={(e) => {
@@ -286,7 +371,7 @@ function Home({ selectedProject }) {
                     }}
                   />
                   <TextField
-                   sx={{ m: '10px', ml: '9%'}}
+                    sx={{ m: '10px', ml: '9%' }}
                     label="Datos de prueba"
                     value={editingCaso.datos_de_prueba}
                     onChange={(e) => {
@@ -294,10 +379,54 @@ function Home({ selectedProject }) {
                       setEditingCaso(updatedCaso);
                     }}
                   />
-                  <Button sx={{ mt: '20%'}} onClick={() => handleUpdateCaso(editingCaso)}  variant="contained"
-                          size="small">Guardar cambios</Button>
+                  <Button sx={{ ml: '16%', mt: '20px' }} onClick={() => handleUpdateCaso(editingCaso)} variant="contained"
+                    size="small">Guardar cambios</Button>
                 </form>
               )}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={openCreateModal} onClose={() => setOpenCreateModal(false)}>
+            <DialogContent>
+              {/* Formulario para agregar un nuevo caso */}
+              <TextField
+                label="Nombre"
+                value={newCasoData.nombre}
+                onChange={(e) => setNewCasoData({ ...newCasoData, nombre: e.target.value })}
+              />
+              <TextField
+                label="Descripción"
+                value={newCasoData.descripcion}
+                onChange={(e) => setNewCasoData({ ...newCasoData, descripcion: e.target.value })}
+              />
+              <TextField
+                label="Pasos a seguir"
+                value={newCasoData.pasos_a_seguir}
+                onChange={(e) => setNewCasoData({ ...newCasoData, pasos_a_seguir: e.target.value })}
+              />
+              <TextField
+                label="Prioridades"
+                value={newCasoData.prioridades}
+                onChange={(e) => setNewCasoData({ ...newCasoData, prioridades: e.target.value })}
+              />
+              <TextField
+                label="Fecha Inicio"
+                value={newCasoData.fecha_inicio}
+                onChange={(e) => setNewCasoData({ ...newCasoData, fecha_inicio: e.target.value })}
+              />
+              <TextField
+                label="Fecha Límite"
+                value={newCasoData.fecha_limite}
+                onChange={(e) => setNewCasoData({ ...newCasoData, fecha_limite: e.target.value })}
+              />
+              <TextField
+                label="Datos de prueba"
+                value={newCasoData.datos_de_prueba}
+                onChange={(e) => setNewCasoData({ ...newCasoData, datos_de_prueba: e.target.value })}
+              />
+              {/* Otros campos del nuevo caso */}
+              {/* ... */}
+              <Button onClick={handleCreate}>Crear Caso</Button>
             </DialogContent>
           </Dialog>
 
