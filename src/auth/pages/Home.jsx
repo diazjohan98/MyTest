@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
-import { Dialog, DialogContent, IconButton, List, ListItem, ListItemText } from '@mui/material';
+import { Button, Dialog, DialogContent, IconButton, List, ListItem, ListItemText, TextField } from '@mui/material';
 import { Delete, Edit, Visibility } from "@mui/icons-material";
 
 function Home({ selectedProject }) {
@@ -41,6 +41,40 @@ function Home({ selectedProject }) {
       // Realiza acciones adicionales luego de la eliminación (si es necesario)
     } catch (error) {
       console.error('Error deleting caso:', error);
+      // Manejo de errores
+    }
+  };
+
+  const [editingCaso, setEditingCaso] = useState(null);
+  const [openEditModal, setOpenEditModal] = useState(false);
+
+  // Función para manejar la apertura del modal de edición
+  const handleOpenEditModal = (caso) => {
+    setEditingCaso(caso);
+    setOpenEditModal(true);
+  };
+
+  // Función para manejar la actualización del caso
+  const handleUpdateCaso = async (updatedData) => {
+    try {
+      const response = await axios.put(
+        `https://proyecto-mytest.fly.dev/v1/caso/${editingCaso.id}`,
+        updatedData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('Update response:', response.data);
+      // Realiza acciones adicionales después de la actualización (si es necesario)
+      // Cierra el modal de edición
+      setOpenEditModal(false);
+      // Actualiza los casos para reflejar los cambios
+      // ... (agrega la lógica para actualizar casos si es necesario)
+    } catch (error) {
+      console.error('Error updating caso:', error);
       // Manejo de errores
     }
   };
@@ -136,7 +170,10 @@ function Home({ selectedProject }) {
                         <IconButton aria-label="Ver" onClick={() => handleOpenDialog(caso)}>
                           <Visibility />
                         </IconButton>
-                        <IconButton aria-label="Editar" >
+                        <IconButton
+                          aria-label="Editar"
+                          onClick={() => handleOpenEditModal(caso)}
+                        >
                           <Edit />
                         </IconButton>
                         <IconButton aria-label="Eliminar" onClick={() => handleDelete(caso)}>
@@ -189,6 +226,81 @@ function Home({ selectedProject }) {
               )}
             </DialogContent>
           </Dialog>
+
+          <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)}>
+            <DialogContent>
+              {editingCaso && (
+                <form>
+                  <TextField
+                    sx={{ m: '10px', ml: '9%'}}
+                    label="Nombre"
+                    value={editingCaso.nombre}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, nombre: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                    sx={{ m: '10px', ml: '9%'}}
+                    label="Descripción"
+                    value={editingCaso.descripcion}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, descripcion: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                   sx={{ m: '10px', ml: '9%'}}
+                    label="Pasos a seguir"
+                    value={editingCaso.pasos_a_seguir}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, pasos_a_seguir: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                   sx={{ m: '10px', ml: '9%'}}
+                    label="Prioridades"
+                    value={editingCaso.prioridades}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, prioridades: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                   sx={{ m: '10px', ml: '9%'}}
+                    label="Fecha Inicio"
+                    value={editingCaso.fecha_inicio}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, fecha_inicio: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                   sx={{ m: '10px', ml: '9%'}}
+                    label="Fecha Límite"
+                    value={editingCaso.fecha_limite}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, fecha_limite: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <TextField
+                   sx={{ m: '10px', ml: '9%'}}
+                    label="Datos de prueba"
+                    value={editingCaso.datos_de_prueba}
+                    onChange={(e) => {
+                      const updatedCaso = { ...editingCaso, datos_de_prueba: e.target.value };
+                      setEditingCaso(updatedCaso);
+                    }}
+                  />
+                  <Button sx={{ mt: '20%'}} onClick={() => handleUpdateCaso(editingCaso)}  variant="contained"
+                          size="small">Guardar cambios</Button>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
+
         </Box>
       </Box>
     </div>
